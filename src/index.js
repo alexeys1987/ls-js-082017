@@ -80,7 +80,19 @@ function returnCounter(number) {
  Функция должна привязать переданные аргументы к функции F и вернуть получившуюся функцию
  */
 function bindFunction(fn) {
+    var arr = [arguments.length];
 
+    if (arguments.length === 0) {
+        return [];
+    }
+
+    for (var k = 1; k < arguments.length; k++) {
+        arr[k - 1] = arguments[k];
+    }
+
+    return function() {
+        return fn(...arr);
+    }
 }
 
 export {
