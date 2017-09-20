@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        
+        td {
+            border: 1px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="homework-container">
+        <div class="filter-name-text">Фильтр по имени</div>
+        <input type="text" id="filter-name-input">
+        <table id="list-table">
+            <tbody>
+            </tbody>
+        </table>
+        <input type="text" id="add-name-input">
+        <input type="text" id="add-value-input">
+        <input type="button" id="add-button" value="Добавить">
+    </div>
+
+    <script>
+        function createCookie(name, value) {
+            document.cookie = name + '=' + value;
+
+            return true;
+        }
+
+        function deleteCookie(name) {
+            return document.cookie = name + '=; expires=' + new Date(-1).toUTCString();
+        }
+
+        let homeworkContainer = document.querySelector('#homework-container');
+        let filterNameInput = homeworkContainer.querySelector('#filter-name-input');
+        let addNameInput = homeworkContainer.querySelector('#add-name-input');
+        let addValueInput = homeworkContainer.querySelector('#add-value-input');
+        let addButton = homeworkContainer.querySelector('#add-button');
+        let listTable = homeworkContainer.querySelector('#list-table tbody');
+
+        filterNameInput.addEventListener('keyup', function(event) {
+            if (!filterNameInput.value) {
+                listTable.innerHTML = '';
+                for (let i = 0; i < document.cookie.split('; ').length; i++) {
+                    let newRow = document.createElement('tr');
+
+                    newRow.innerHTML = '<td>' +
+                        document.cookie.split('; ')[i].split('=')[0] +
+                        '</td><td>' +
+                        document.cookie.split('; ')[i].split('=')[1] +
+                        '</td><td><input type="button" class="remove-button" value="Удалить"></td>';
+                    listTable.appendChild(newRow);
+                }
+            } else if (event.key == 'Backspace' || event.key == 'Delete') {
+                for (let i = 0; i < document.cookie.split('; ').length; i++) {
+                    let showCurrentCookie = false;
+
+                    if (document.cookie.split('; ')[i].split('=')[0].indexOf(filterNameInput.value) >= 0) {
+                        for (let j = 0; j < listTable.children.length; j++) {
+                            if (document.cookie.split('; ')[i].split('=')[0] == listTable.children[j].children[0].textContent) {
+                                showCurrentCookie = true;
+                                break;
+                            }
+                        }
+                        if (!showCurrentCookie) {
+                            let newRow = document.createElement('tr');
+
+                            newRow.innerHTML = '<td>' +
+                                document.cookie.split('; ')[i].split('=')[0] +
+                                '</td><td>' +
+                                document.cookie.split('; ')[i].split('=')[1] +
+                                '</td><td><input type="button" class="remove-button" value="Удалить"></td>';
+                            listTable.appendChild(newRow);
+                        }
+
+                    }
+                }
+            } else {
+                for (let i = 0; i < listTable.children.length; i++) {
+                    if (listTable.children[i].children[0].textContent.indexOf(filterNameInput.value) == '-1') {
+                        listTable.removeChild(listTable.children[i]);
+                        i--;
+                    }
+                }
+            }
+        });
+
+        addButton.addEventListener('click', () => {
+            let showCurrentCookie = false;
+
+            for (let i = 0; i < listTable.children.length; i++) {
+                if (listTable.children[i].children[0].textContent == addNameInput.value) {
+                    listTable.children[i].children[1].textContent = addValueInput.value;
+                    showCurrentCookie = true;
+                    break;
+                }
+            }
+            if (!showCurrentCookie && addNameInput.value.indexOf(filterNameInput.value) >= 0) {
+                let newRow = document.createElement('tr');
+
+                newRow.innerHTML = '<td>' +
+                    addNameInput.value +
+                    '</td><td>' +
+                    addValueInput.value +
+                    '</td><td><input type="button" class="remove-button" value="Удалить"></td>';
+                listTable.appendChild(newRow);
+            }
+            document.cookie = addNameInput.value + '=' + addValueInput.value;
+            addNameInput.value = '';
+            addValueInput.value = '';
+        });
+
+        listTable.addEventListener('click', (event) => {
+            let currentEventTarget = event.target.parentNode;
+
+            if (event.target.tagName == 'INPUT') {
+                currentEventTarget.parentNode.classList.add('removeElem');
+                document.cookie = currentEventTarget.previousElementSibling.previousElementSibling.textContent + '=; expires=' + new Date(-1).toUTCString();
+                currentEventTarget = listTable.getElementsByClassName('removeElem')[0];
+                listTable.removeChild(currentEventTarget);
+            }
+
+        });
+
+        for (i = 0; i < document.cookie.split('; ').length; i++) {
+            let newRow = document.createElement('tr');
+            newRow.innerHTML = '<td>' +
+                document.cookie.split('; ')[i].split('=')[0] +
+                '</td><td>' +
+                document.cookie.split('; ')[i].split('=')[1] +
+                '</td><td><input type="button" class="remove-button" value="Удалить"></td>';
+            listTable.appendChild(newRow);
+        }
+    </script>
+</body>
+
+</html>
