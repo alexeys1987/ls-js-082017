@@ -7,9 +7,9 @@
  * @return {Promise}
  */
 function delayPromise(seconds) {
-    return new Promise(function(resolved, resolve) {
+    return new Promise(function(resolve, reject) {
         setTimeout(function() {
-            resolved();
+            resolve();
         }, seconds * 1000);
     });
 
@@ -23,7 +23,7 @@ function delayPromise(seconds) {
  * @return {Promise<Array<{name: String}>>}
  */
 function loadAndSortTowns() {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();
         // let  sortArray = [];
 
