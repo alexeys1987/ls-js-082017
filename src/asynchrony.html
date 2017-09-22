@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        ul li {
+            list-style: none;
+        }
+        
+        #homework-container {
+            padding: 10px 50px;
+        }
+        
+        #loading-block {
+            display: none;
+        }
+        
+        #filter-block {
+            display: none;
+        }
+        
+        #error-block {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div class="container">
+        <div id="id1">Элемент с идентификаторов 1</div>
+        <div id="id2">Элемент с идентификаторов 2</div>
+        <p></p>
+        <div class="c1">Элемент с классом 1
+            <div class="c11">Элемент с классом 11
+                <div class="c21">Элемент с классом 21</div>
+            </div>
+        </div>
+    </div>
+    <div id="myDiv">123456</div>
+    <div id="result"></div> -->
+
+    <div id="homework-container">
+        <div id="loading-block">
+            Загрузка...
+        </div>
+        <div id="error-block">
+            <div id="error-block-text">Не удалось загрузить города</div>
+            <input id="error-block-button" type="button" value="Повторить">
+        </div>
+        <div id="filter-block">
+            <input id="filter-input" type="text">
+            <ul id="filter-result"></ul>
+        </div>
+    </div>
+    <script>
+        let homeworkContainer = document.querySelector('#homework-container');
+        let loadingBlock = homeworkContainer.querySelector('#loading-block');
+        let filterBlock = homeworkContainer.querySelector('#filter-block');
+        let filterInput = homeworkContainer.querySelector('#filter-input');
+        let filterResult = homeworkContainer.querySelector('#filter-result');
+        let errorBlock = homeworkContainer.querySelector('#error-block');
+        let errorButton = homeworkContainer.querySelector('#error-block-button');
+        let townsPromise;
+
+        filterInput.addEventListener('keyup', function() {
+            for (let i = 0; i < filterResult.children.length; i++) {
+                filterResult.children[i].style.display =
+                    isMatching(filterResult.children[i].textContent, filterInput.value) ?
+                    'block' : 'none';
+            }
+        });
+
+        errorButton.addEventListener('click', function() {
+            loadTowns()
+                .then(
+                    resolve => {
+                        loadingBlock.style.display = 'none';
+                        filterBlock.style.display = 'block';
+
+                        filterResult.innerHTML = '<li>' + resolve[0].name + '</li>';
+                        for (let i = 1; i < resolve.length; i++) {
+                            filterResult.innerHTML = filterResult.innerHTML + '<li>' + resolve[i].name + '</li>';
+                        }
+                    },
+                    reject => {
+                        loadingBlock.style.display = 'none';
+                        errorBlock.style.display = 'block';
+                    }
+                );
+        });
+
+        function loadTowns() {
+            errorBlock.style.display = 'none';
+            loadingBlock.style.display = 'block';
+
+            return new Promise(function(resolve, reject) {
+                let xhr = new XMLHttpRequest();
+
+                xhr.open('GET', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
+                xhr.responseType = 'json';
+                xhr.addEventListener('load', function() {
+                    if (Array.isArray(xhr.response)) {
+                        resolve(xhr.response.sort(function(a, b) {
+                            if (a.name > b.name) {
+                                return 1
+                            }
+                            if (a.name < b.name) {
+                                return -1
+                            }
+                        }));
+                    }
+                });
+                xhr.addEventListener('error', function() {
+                    reject();
+                });
+                xhr.addEventListener('abort', function() {
+                    reject();
+                });
+                xhr.addEventListener('timeout', function() {
+                    reject();
+                });
+                xhr.send();
+            });
+        }
+        loadTowns()
+            .then(
+                resolve => {
+                    loadingBlock.style.display = 'none';
+                    filterBlock.style.display = 'block';
+
+                    filterResult.innerHTML = '<li>' + resolve[0].name + '</li>';
+                    for (let i = 1; i < resolve.length; i++) {
+                        filterResult.innerHTML = filterResult.innerHTML + '<li>' + resolve[i].name + '</li>';
+                    }
+                },
+                reject => {
+                    loadingBlock.style.display = 'none';
+                    errorBlock.style.display = 'block';
+                });
+
+        function isMatching(full, chunk) {
+            return (new RegExp(chunk, 'i')).test(full) ? true : false;
+        }
+
+
+
+
+
+        // function loadAndSortTowns() {
+        //     return new Promise(function(resolve, reject) {
+        //             let xhr = new XMLHttpRequest();
+        //             let sortArray = [];
+
+        //             xhr.open('GET', 'cities.json');
+        //             xhr.responseType = 'json';
+        //             xhr.addEventListener('load', function() {
+        //                 // for (let i = 0; i < xhr.response.length; i++) {
+        //                 //     sortArray[i] = xhr.response[i].name;
+        //                 // }
+        //                 console.log(Array.isArray(xhr.response));
+        //                 // sortArray = xhr.response.sort(function(a, b) {
+        //                 //     if (a.name > b.name) return 1;
+        //                 //     if (a.name < b.name) return -1;
+        //                 // });
+        //                 // console.log(sortArray)
+        //                 // resolve(sortArrays);
+        //             });
+        //             xhr.send();
+        //         })
+        //         // .then(function() {
+        //         //     console.log(sortArray)
+        //         // })
+        //     ;
+        // }
+
+
+        // function sendRequest(url) {
+        //     return new Promise(function(resolve, reject) {
+        //         myDiv.addEventListener('click', function() {
+        //             let xhr = new XMLHttpRequest();
+        //             xhr.open('GET', url);
+        //             xhr.responseType = 'json';
+        //             xhr.send();
+        //             xhr.addEventListener('load', function() {
+        //                 // коды ошибок >=400
+        //                 // коды когда все хорошо 200-399
+        //                 if (xhr.status >= 400) {
+        //                     reject();
+        //                 } else {
+        //                     resolve(xhr.response // текст преобразованный в json
+        //                         // ,xhr.responseText // только оригинальный текст
+        //                     );
+        //                 }
+        //             });
+        //         });
+        //     });
+        // }
+
+        // myDiv.addEventListener('click', function() {
+        //     sendRequest('test1.txt')
+        //         .then(function(response) {
+        //             console.log(response);
+        //         }, () => {
+        //             // console.log('wrong'); // обрвботка reject();
+        //         })
+        //         .catch(() => {
+        //             console.log('wrong'); // обрвботка reject();
+        //         });
+        // });
+
+
+
+
+        // myDiv.addEventListener('click', function() {
+        //     let xhr = new XMLHttpRequest();
+        //     xhr.open('GET', '/test.txt');
+        //     xhr.send();
+        //     xhr.addEventListener('load', function() {
+        //         result.textContent = xhr.response;
+        //     });
+        // });
+
+
+        // =======================================
+
+
+        // let url1 = 'http://fotorelax.ru/wp-content/uploads/2016/03/Awesome-realistic-drawings-of-animals-21.jpg';
+        // let url2 = 'http://fotorelax.ru/wp-content/uploads/2016/03/Awesome-realistic-drawings-of-animals-20.jpg';
+        // let url3 = 'http://watafak.ru/uploads/posts/2016-03/1459356619119d7a80.jpeg';
+
+        // function loadImage(url) {
+        //     return new Promise(function(resolve) {
+        //         let img = document.createElement('img');
+        //         img.height = '200';
+        //         img.src = url;
+        //         document.body.appendChild(img);
+        //         img.addEventListener('load', function() {
+        //             resolve();
+        //         });
+        //     });
+        // }
+
+        // loadImage(url1)
+        //     .then(() => loadImage(url2))
+        //     .then(() => loadImage(url3))
+        //     .then(() => console.log('all load'))
+
+        // loadImage(url1);
+        // loadImage(url2);
+        // loadImage(url3);
+
+        // loadImage(url1)
+        //     .then(function() {
+        //         console.log('image1 is load');
+        //         return loadImage(url2);
+        //     })
+        //     .then(function() {
+        //         console.log('image2 is load'); // не будет вызвана до тех пор, 
+        //         // пока не выполниться loadImage(url2)
+        //         loadImage(url3);
+        //     })
+        //     .then(function() {
+        //         console.log('image3 is load'); // будет вызвана  
+        //         // не дожидаясь (отсутствует return) выполниться loadImage(url3)
+        //     });
+
+        // Последовательная загрузка картинок, плохая реализация
+        // let img1 = document.createElement('img');
+        // img1.height = '200';
+        // img1.src = url1;
+        // img1.addEventListener('load', function() {
+        //     let img2 = document.createElement('img');
+        //     img2.height = '200';
+        //     img2.src = url2;
+        //     img2.addEventListener('load', function() {
+        //         let img3 = document.createElement('img');
+        //         img3.height = '200';
+        //         img3.src = url3;
+        //         document.body.appendChild(img3);
+        //     });
+        //     document.body.appendChild(img2);
+        // });
+        // document.body.appendChild(img1);
+
+        // Произвольная загрузка картинок
+
+        // let img1 = document.createElement('img');
+        // img1.height = '200';
+        // img1.src = url1;
+        // document.body.appendChild(img1);
+        // let img2 = document.createElement('img');
+        // img2.height = '200';
+        // img2.src = url2;
+        // document.body.appendChild(img2);
+        // let img3 = document.createElement('img');
+        // img3.height = '200';
+        // img3.src = url3;
+        // document.body.appendChild(img3);
+    </script>
+
+</body>
+
+</html>

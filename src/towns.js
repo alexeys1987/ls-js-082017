@@ -36,6 +36,8 @@ let homeworkContainer = document.querySelector('#homework-container');
  * @return {Promise<Array<{name: string}>>}
  */
 function loadTowns() {
+    loadingBlock.style.display = 'block';
+
     return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();
 
@@ -56,6 +58,15 @@ function loadTowns() {
         xhr.send();
     });
 }
+loadTowns().then(function(resolve) {
+    loadingBlock.style.display = 'none';
+    filterBlock.style.display = 'block';
+
+    filterResult.innerHTML = '<li>' + resolve[0].name + '</li>';
+    for (let i = 1; i < resolve.length; i++) {
+        filterResult.innerHTML = filterResult.innerHTML + '<li>' + resolve[i].name + '</li>';
+    }
+});
 
 /**
  * Функция должна проверять встречается ли подстрока chunk в строке full
@@ -71,9 +82,7 @@ function loadTowns() {
  * @return {boolean}
  */
 function isMatching(full, chunk) {
-    let reChunk = new RegExp(chunk, 'i');
-
-    return (reChunk).test(full) ? true : false;
+    return (new RegExp(chunk, 'i')).test(full) ? true : false;
 }
 
 let loadingBlock = homeworkContainer.querySelector('#loading-block');
@@ -82,7 +91,13 @@ let filterInput = homeworkContainer.querySelector('#filter-input');
 let filterResult = homeworkContainer.querySelector('#filter-result');
 let townsPromise;
 
-filterInput.addEventListener('keyup', function() {});
+filterInput.addEventListener('keyup', function() {
+    for (let i = 0; i < filterResult.children.length; i++) {
+        filterResult.children[i].style.display =
+            isMatching(filterResult.children[i].textContent, filterInput.value) ?
+            'block' : 'none';
+    }
+});
 
 export {
     loadTowns,
