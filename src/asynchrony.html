@@ -70,38 +70,44 @@
         let filterResult = homeworkContainer.querySelector('#filter-result');
         let errorBlock = homeworkContainer.querySelector('#error-block');
         let errorButton = homeworkContainer.querySelector('#error-block-button');
-        let townsPromise;
+        let townsPromise = [];
 
-        filterInput.addEventListener('keyup', function() {
-            for (let i = 0; i < filterResult.children.length; i++) {
-                filterResult.children[i].style.display =
-                    isMatching(filterResult.children[i].textContent, filterInput.value) ?
-                    'block' : 'none';
+        function isMatching(full, chunk) {
+            return (new RegExp(chunk, 'i')).test(full) ? true : false;
+        }
+
+        function createElementTagInContainer(container, elementTag, innerText = '') {
+            let element = document.createElement(elementTag);
+            element.textContent = innerText;
+            return container.appendChild(element);
+        }
+
+        function createFilterListInContainer(container, elementTag, innerArry = [], filterText = '') {
+            if (filterText == '') {
+                for (let i = 0; i < innerArry.length; i++) {
+                    createElementTagInContainer(container, 'li', innerArry[i]);
+                }
+
+                return 1;
             }
-        });
+            for (let i = 0; i < innerArry.length; i++) {
+                if ((new RegExp(filterText, 'i')).test(innerArry[i])) {
+                    createElementTagInContainer(container, 'li', innerArry[i]);
+                }
+            }
 
-        errorButton.addEventListener('click', function() {
-            loadTowns()
-                .then(
-                    resolve => {
-                        loadingBlock.style.display = 'none';
-                        filterBlock.style.display = 'block';
+            return 2;
+        }
 
-                        filterResult.innerHTML = '<li>' + resolve[0].name + '</li>';
-                        for (let i = 1; i < resolve.length; i++) {
-                            filterResult.innerHTML = filterResult.innerHTML + '<li>' + resolve[i].name + '</li>';
-                        }
-                    },
-                    reject => {
-                        loadingBlock.style.display = 'none';
-                        errorBlock.style.display = 'block';
-                    }
-                );
-        });
+        function clearElementsInContainer(container) {
+            return container.innerHTML = '';
+        }
 
         function loadTowns() {
+            filterBlock.style.display = 'none';
             errorBlock.style.display = 'none';
             loadingBlock.style.display = 'block';
+            clearElementsInContainer(filterResult);
 
             return new Promise(function(resolve, reject) {
                 let xhr = new XMLHttpRequest();
@@ -118,39 +124,73 @@
                                 return -1
                             }
                         }));
+                    } else {
+                        reject(xhr.status);
                     }
                 });
-                xhr.addEventListener('error', function() {
-                    reject();
-                });
-                xhr.addEventListener('abort', function() {
-                    reject();
-                });
-                xhr.addEventListener('timeout', function() {
+                xhr.addEventListener('error' || 'abort' || 'timeout', function() {
                     reject();
                 });
                 xhr.send();
             });
         }
+
+        errorButton.addEventListener('click', function() {
+            loadTowns()
+                .then(
+                    resolve => {
+                        loadingBlock.style.display = 'none';
+                        filterBlock.style.display = 'block';
+
+                        for (let i = 0; i < resolve.length; i++) {
+                            townsPromise[i] = resolve[i].name;
+                        }
+
+                        createFilterListInContainer(filterResult, 'li', townsPromise, filterInput.value);
+                    },
+                    reject => {
+                        loadingBlock.style.display = 'none';
+                        errorBlock.style.display = 'block';
+                        if (reject >= 404) {
+                            alert('Файл не найден');
+                        } else {
+                            alert('Не удалось загрузить города');
+                        }
+                    }
+                );
+        });
+
+        filterInput.addEventListener('keyup', function() {
+            clearElementsInContainer(filterResult);
+            createFilterListInContainer(filterResult, 'li', townsPromise, filterInput.value);
+
+            return 1;
+        });
+
         loadTowns()
             .then(
                 resolve => {
                     loadingBlock.style.display = 'none';
                     filterBlock.style.display = 'block';
 
-                    filterResult.innerHTML = '<li>' + resolve[0].name + '</li>';
-                    for (let i = 1; i < resolve.length; i++) {
-                        filterResult.innerHTML = filterResult.innerHTML + '<li>' + resolve[i].name + '</li>';
+                    for (let i = 0; i < resolve.length; i++) {
+                        townsPromise[i] = resolve[i].name;
                     }
+
+                    createFilterListInContainer(filterResult, 'li', townsPromise, filterInput.value);
                 },
                 reject => {
                     loadingBlock.style.display = 'none';
                     errorBlock.style.display = 'block';
+
+                    if (reject >= 404) {
+                        alert('Файл не найден');
+                    } else {
+                        alert('Не удалось загрузить города');
+                    }
                 });
 
-        function isMatching(full, chunk) {
-            return (new RegExp(chunk, 'i')).test(full) ? true : false;
-        }
+
 
 
 

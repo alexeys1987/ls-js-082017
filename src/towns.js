@@ -36,7 +36,10 @@ let homeworkContainer = document.querySelector('#homework-container');
  * @return {Promise<Array<{name: string}>>}
  */
 function loadTowns() {
+    filterBlock.style.display = 'none';
+    errorBlock.style.display = 'none';
     loadingBlock.style.display = 'block';
+    clearElementsInContainer(filterResult);
 
     return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();
@@ -53,20 +56,16 @@ function loadTowns() {
                         return -1
                     }
                 }));
+            } else {
+                reject(xhr.status);
             }
+        });
+        xhr.addEventListener('error' || 'abort' || 'timeout', function() {
+            reject();
         });
         xhr.send();
     });
 }
-loadTowns().then(function(resolve) {
-    loadingBlock.style.display = 'none';
-    filterBlock.style.display = 'block';
-
-    filterResult.innerHTML = '<li>' + resolve[0].name + '</li>';
-    for (let i = 1; i < resolve.length; i++) {
-        filterResult.innerHTML = filterResult.innerHTML + '<li>' + resolve[i].name + '</li>';
-    }
-});
 
 /**
  * Функция должна проверять встречается ли подстрока chunk в строке full
@@ -85,19 +84,95 @@ function isMatching(full, chunk) {
     return (new RegExp(chunk, 'i')).test(full) ? true : false;
 }
 
+function createElementTagInContainer(container, elementTag, innerText = '') {
+    let element = document.createElement(elementTag);
+    element.textContent = innerText;
+    return container.appendChild(element);
+}
+
+function createFilterListInContainer(container, elementTag, innerArry = [], filterText = '') {
+    if (filterText == '') {
+        for (let i = 0; i < innerArry.length; i++) {
+            createElementTagInContainer(container, 'li', innerArry[i]);
+        }
+
+        return 1;
+    }
+    for (let i = 0; i < innerArry.length; i++) {
+        if ((new RegExp(filterText, 'i')).test(innerArry[i])) {
+            createElementTagInContainer(container, 'li', innerArry[i]);
+        }
+    }
+
+    return 2;
+}
+
+function clearElementsInContainer(container) {
+    return container.innerHTML = '';
+}
+
 let loadingBlock = homeworkContainer.querySelector('#loading-block');
 let filterBlock = homeworkContainer.querySelector('#filter-block');
 let filterInput = homeworkContainer.querySelector('#filter-input');
 let filterResult = homeworkContainer.querySelector('#filter-result');
-let townsPromise;
+let errorBlock = homeworkContainer.querySelector('#error-block');
+let errorButton = homeworkContainer.querySelector('#error-block-button');
+let townsPromise = [];
+
+errorButton.addEventListener('click', function() {
+    loadTowns()
+        .then(
+            resolve => {
+                loadingBlock.style.display = 'none';
+                filterBlock.style.display = 'block';
+
+                for (let i = 0; i < resolve.length; i++) {
+                    townsPromise[i] = resolve[i].name;
+                }
+
+                createFilterListInContainer(filterResult, 'li', townsPromise, filterInput.value);
+            },
+            reject => {
+                loadingBlock.style.display = 'none';
+                errorBlock.style.display = 'block';
+                if (reject >= 404) {
+                    alert('Файл не найден');
+                } else {
+                    alert('Не удалось загрузить города');
+                }
+            }
+        );
+});
 
 filterInput.addEventListener('keyup', function() {
-    for (let i = 0; i < filterResult.children.length; i++) {
-        filterResult.children[i].style.display =
-            isMatching(filterResult.children[i].textContent, filterInput.value) ?
-            'block' : 'none';
-    }
+    clearElementsInContainer(filterResult);
+    createFilterListInContainer(filterResult, 'li', townsPromise, filterInput.value);
+
+    return 1;
 });
+
+loadTowns()
+    .then(
+        resolve => {
+            loadingBlock.style.display = 'none';
+            filterBlock.style.display = 'block';
+
+            for (let i = 0; i < resolve.length; i++) {
+                townsPromise[i] = resolve[i].name;
+            }
+
+            createFilterListInContainer(filterResult, 'li', townsPromise, filterInput.value);
+        },
+        reject => {
+            loadingBlock.style.display = 'none';
+            errorBlock.style.display = 'block';
+
+            if (reject >= 404) {
+                alert('Файл не найден');
+            } else {
+                alert('Не удалось загрузить города');
+            }
+        });
 
 export {
     loadTowns,
