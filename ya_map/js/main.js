@@ -50,31 +50,35 @@ function init() {
     }, {
         searchControlProvider: 'yandex#search'
     });
+
     customItemContentLayout = ymaps.templateLayoutFactory.createClass(
-        // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
         '<div class="show-feeds__feeds-text"><div class="show-feeds__feeds-text-place">{{ properties.place }}</div>' +
         '<div class="show-feeds__feeds-text-address">{{ properties.address }}</div>' +
         '<div class="show-feeds__feeds-text-feed">{{ properties.feed }}</div></div>' +
-        '<div class="show-feeds__feeds-text-date">' + createDate() + '</div>', {
+        '<div class="show-feeds__feeds-text-date">{{ properties.date }}</div>', {
 
-            // build: function() {
-            //     //     // Сначала вызываем метод build родительского класса.
-            //     BalloonContentLayout.superclass.build.call(this);
-            //     //     // А затем выполняем дополнительные действия.
-            //     //     //$('#counter-button').bind('click', this.onCounterClick);
-            // },
+            build: function() {
+                customItemContentLayout.superclass.build.call(this);
+                document.getElementsByClassName('show-feeds__feeds-text-address')[0]
+                    .addEventListener('click', this.onAddressClick);
+            },
 
-            // clear: function() {
-            //     //     // Выполняем действия в обратном порядке - сначала снимаем слушателя,
-            //     //     // а потом вызываем метод clear родительского класса.
-            //     //     //$('#counter-button').unbind('click', this.onCounterClick);
-            //     BalloonContentLayout.superclass.clear.call(this);
-            // },
+            clear: function() {
+                document.getElementsByClassName('show-feeds__feeds-text-address')[0]
+                    .removeEventListener('click', this.onAddressClick);
+                customItemContentLayout.superclass.clear.call(this);
+            },
 
-            // onCounterClick: function() {
-
-            // }
+            onAddressClick: function() {
+                let dataPlacemark = myMap.balloon._balloon._data.cluster.properties._data.geoObjects;
+                showWriteFeed(cX, cY, dataPlacemark[0].properties._data.address);
+                for (let i = 0; i < dataPlacemark.length; i++) {
+                    createFeedInWriteFeeds(dataPlacemark[i].properties._data.name, dataPlacemark[i].properties._data.place, dataPlacemark[i].properties._data.feed, dataPlacemark[i].properties._data.date);
+                }
+                myMap.balloon.close();
+            }
         });
+
     clusterer = new ymaps.Clusterer({
         clusterDisableClickZoom: true,
         clusterOpenBalloonOnClick: true,
@@ -85,21 +89,33 @@ function init() {
         clusterBalloonContentLayoutHeight: 200,
         clusterBalloonPagerSize: 10
     });
+
     clusterer.options.set({
         gridSize: 80,
         clusterDisableClickZoom: true
     });
+
     myMap.geoObjects.add(clusterer);
-    clusterer.events.add('balloonopen', function() {
+    clusterer.events.add('balloonopen', function(e) {
         hideWriteFeed();
     });
+
+    clusterer.events.add('click', function(e) {
+        coords = e.get('coords');
+        cX = e.get('domEvent').get('pageX');
+        cY = e.get('domEvent').get('pageY');
+    });
+
+
     myMap.events.add('click', function(e) {
+        if (myMap.balloon.isOpen()) {
+            myMap.balloon.close();
+        }
         coords = e.get('coords');
         cX = e.get('domEvent').get('pageX');
         cY = e.get('domEvent').get('pageY');
         getAndShowAddress(coords);
     });
-
 
     function getAndShowAddress(coords) {
         ymaps.geocode(coords).then(function(result) {
@@ -113,123 +129,27 @@ function init() {
             address: geoObject.getAddressLine(),
             name: writeFeedsNameInput.value,
             place: writeFeedsPlaceInput.value,
-            feed: writeFeedsFeedText.value
+            feed: writeFeedsFeedText.value,
+            date: createDate()
         });
         clusterer.add(myPlacemark);
         myPlacemark.events.add('click', function(e) {
+            let dataPlacemark = e.originalEvent.target.properties._data;
+
+            if (myMap.balloon.isOpen()) {
+                myMap.balloon.close();
+            }
             cX = e.get('domEvent').get('pageX');
             cY = e.get('domEvent').get('pageY');
-            let dataPlacemark = e.originalEvent.target.properties._data;
-            showWriteFeed(cX, cY, dataPlacemark.address, dataPlacemark);
+            showWriteFeed(cX, cY, dataPlacemark.address);
+            createFeedInWriteFeeds(dataPlacemark.name, dataPlacemark.place, dataPlacemark.feed, dataPlacemark.date);
         });
     }
 
-    // // =========== Feeds ==========
-    // function showFeeds(elem) {
-    //     createFeedsTextList();
-    //     createFeedsNumberList();
-
-    //     feeds.style.display = 'flex';
-    //     sizeFeeds.width = parseInt(getComputedStyle(feeds).width);
-    //     sizeFeeds.height = parseInt(getComputedStyle(feeds).height);
-    //     feeds.style.left = (sizeYaMap.width > elem.clientX + sizeFeeds.width) ?
-    //         elem.clientX + 'px' :
-    //         elem.clientX - sizeFeeds.width + 'px';
-    //     feeds.style.top = (sizeYaMap.height > elem.clientY + sizeFeeds.height) ?
-    //         elem.clientY + 'px' :
-    //         elem.clientY - sizeFeeds.height + 'px';
-
-    //     currentPageFeeds = 0;
-    //     numberOfPageFeeds = feedsTextList.children.length;
-    // }
-
-    // function hideFeeds() {
-    //     feeds.style.display = 'none';
-    //     currentPageFeeds = undefined;
-    // }
-
-    // function createFeedsTextList() {
-
-    //     feedsTextList.firstElementChild.style.display = 'block';
-
-    //     return true;
-    // }
-
-    // function createFeedsNumberList() {
-    //     let newLiElement;
-
-    //     feedsNumberList.innerHTML = '';
-    //     for (let i = 0; i < feedsTextList.children.length; i++) {
-    //         newLiElement = document.createElement('li');
-
-    //         newLiElement.classList.add('show-feeds__feeds-number-item');
-    //         newLiElement.textContent = i + 1;
-    //         feedsNumberList.appendChild(newLiElement);
-    //     }
-    //     feedsNumberList.firstElementChild.classList.add('show-feeds__feeds-number-item--show');
-
-    //     return true;
-    // }
-
-    // function showChooseFeed(numberPage) {
-    //     feedsTextList.children[numberPage].style.display = 'block';
-    //     feedsNumberList.children[numberPage].classList.add('show-feeds__feeds-number-item--show');
-    // }
-
-    // function hideCurrentFeed(numberPage) {
-    //     feedsTextList.children[numberPage].style.display = 'none';
-    //     feedsNumberList.children[numberPage].classList.remove('show-feeds__feeds-number-item--show');
-    // }
-
-    // function scrollFeedsLeft() {
-    //     if (currentPageFeeds - 1 >= 0) {
-    //         hideCurrentFeed(currentPageFeeds);
-    //         currentPageFeeds -= 1;
-    //         showChooseFeed(currentPageFeeds);
-    //     }
-    // }
-
-    // function scrollFeedsRight() {
-    //     if (currentPageFeeds + 1 < numberOfPageFeeds) {
-    //         hideCurrentFeed(currentPageFeeds);
-    //         currentPageFeeds += 1;
-    //         showChooseFeed(currentPageFeeds);
-    //     }
-    // }
-
-    // function scrollFeeds(showElem) {
-    //     hideCurrentFeed(currentPageFeeds);
-    //     currentPageFeeds = showElem;
-    //     showChooseFeed(currentPageFeeds);
-    // }
-
-    // feedsClosedButton.addEventListener('click', hideFeeds);
-    // feedsArrowLeft.addEventListener('click', scrollFeedsLeft);
-    // feedsArrowRight.addEventListener('click', scrollFeedsRight);
-    // feedsNumberList.addEventListener('click', function(elem) {
-    //     let targetElement = elem.target;
-
-    //     if (targetElement.classList == 'show-feeds__feeds-number-item') {
-    //         for (let i = 0; i < feedsNumberList.children.length; i++) {
-    //             targetElement = targetElement.previousElementSibling;
-    //             if (targetElement == undefined) {
-    //                 scrollFeeds(i);
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // });
-
-    // =========== Write feed ==========
-    function showWriteFeed(cX, cY, address, arryaFeeds = undefined) {
+    // =========== Form feed ==========
+    function showWriteFeed(cX, cY, address) {
         writeFeed.getElementsByClassName('write-feeds__header-address')[0].textContent = address;
         writeFeedsList.innerHTML = '';
-        if (arryaFeeds != undefined &&
-            arryaFeeds.hasOwnProperty('name') &&
-            arryaFeeds.hasOwnProperty('place') &&
-            arryaFeeds.hasOwnProperty('feed')) {
-            createFeedInWriteFeeds(arryaFeeds.name, arryaFeeds.place, arryaFeeds.feed);
-        }
         writeFeed.style.display = 'flex';
         sizeWriteFeed.width = parseInt(getComputedStyle(writeFeed).width);
         sizeWriteFeed.height = parseInt(getComputedStyle(writeFeed).height);
@@ -264,7 +184,7 @@ function init() {
             ((result.getSeconds() < 10) ? '0' + result.getSeconds() : result.getSeconds());
     }
 
-    function createFeedInWriteFeeds(name, place, feed) {
+    function createFeedInWriteFeeds(name, place, feed, date) {
         if (name == '' ||
             place == '' ||
             feed == '') {
@@ -279,7 +199,7 @@ function init() {
         newLiElement.innerHTML = '<div class="write-feeds__main-feeds-item-name-wrapper"><div class="write-feeds__main-feeds-item-name">' +
             name + '</div><div class="write-feeds__main-feeds-item-place">' +
             place + '   ' +
-            createDate() + '</div></div><div class="write-feeds__main-feeds-item-feed">' +
+            date + '</div></div><div class="write-feeds__main-feeds-item-feed">' +
             feed + '</div>';
 
         writeFeedsNoFeed.style.display = 'none';
@@ -289,8 +209,9 @@ function init() {
     }
 
     function createFeed() {
-        createFeedInWriteFeeds(writeFeedsNameInput.value, writeFeedsPlaceInput.value, writeFeedsFeedText.value);
-        showPlacemarkFeed(coords);
+        if (createFeedInWriteFeeds(writeFeedsNameInput.value, writeFeedsPlaceInput.value, writeFeedsFeedText.value, createDate())) {
+            showPlacemarkFeed(coords);
+        }
         clearField(writeFeedsNameInput);
         clearField(writeFeedsPlaceInput);
         clearField(writeFeedsFeedText);
