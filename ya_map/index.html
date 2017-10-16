@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Yandex map</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript">
+    </script>
+</head>
+
+<body>
+    <div id="wrapper-ya-map" class="wrapper-ya-map">
+        <div id="feeds" class="show-feeds">
+            <div id="feeds-closed-button" class="show-feeds__closed-button"></div>
+            <div class="show-feeds__arrow">
+                <div id="feeds-arrow-left" class="show-feeds__arrow-left"></div>
+            </div>
+            <div class="show-feeds__wrapper-feeds">
+                <ul id="show-feeds__feeds-text-list" class="show-feeds__feeds-text-list">
+                    <!-- <li class="show-feeds__feeds-text-item">
+                        <div class="show-feeds__feeds-text-place">
+                            Место1
+                        </div>
+                        <div class="show-feeds__feeds-text-address">
+                            Адрес1
+                        </div>
+                        <div class="show-feeds__feeds-text-feed">
+                            Отзыв1
+                        </div>
+                        <div class="show-feeds__feeds-text-date">
+                            Дата1
+                        </div>
+                    </li> -->
+                </ul>
+                <ul id="show-feeds__feeds-number-list" class="show-feeds__feeds-number-list">
+                </ul>
+            </div>
+            <div class="show-feeds__arrow">
+                <div id="feeds-arrow-right" class="show-feeds__arrow-right"></div>
+            </div>
+        </div>
+        <div id="write-feeds" class="write-feeds">
+            <div class="write-feeds__header">
+                <div class="write-feeds__header-address"></div>
+                <div id="write-feeds__header-button" class="write-feeds__header-button"></div>
+            </div>
+            <div class="write-feeds__main">
+                <div class="write-feeds__main-feeds">
+                    <div id="write-feeds__main-feeds-no-feeds" class="write-feeds__main-feeds-no-feeds">Отзывов пока нет...</div>
+                    <ul id="write-feeds__main-feeds-list" class="write-feeds__main-feeds-list">
+
+                    </ul>
+                </div>
+                <div class="write-feeds__main-feed">
+                    <div class="write-feeds__main-feed-name">Ваш отзыв</div>
+                    <form class="main-feed-form" action="">
+                        <input id="main-feed-form-name" class="main-feed-form-input" type="text" placeholder="Ваше имя">
+                        <input id="main-feed-form-place" class="main-feed-form-input" type="text" placeholder="Укажите место">
+                        <textarea id="main-feed-form-textarea" class="main-feed-form-textarea" placeholder="Поделитесь впечатлениями"></textarea>
+                        <div id="main-feed-form-submit" class="main-feed-form-submit">Добавить</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="ya-map" class="wrapper-ya-map__ya-map">
+
+        </div>
+    </div>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
