@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Yandex map</title>
+    <link rel="stylesheet" type="text/css" href="src/main.css">
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript">
+    </script>
+</head>
+
+<body>
+    <div id="wrapper-ya-map" class="wrapper-ya-map">
+        <div id="write-feeds" class="write-feeds">
+            <div class="write-feeds__header">
+                <div class="write-feeds__header-address"></div>
+                <div id="write-feeds__header-button" class="write-feeds__header-button"></div>
+            </div>
+            <div class="write-feeds__main">
+                <div class="write-feeds__main-feeds">
+                    <div id="write-feeds__main-feeds-no-feeds" class="write-feeds__main-feeds-no-feeds">Отзывов пока нет...</div>
+                    <ul id="write-feeds__main-feeds-list" class="write-feeds__main-feeds-list">
+
+                    </ul>
+                </div>
+                <div class="write-feeds__main-feed">
+                    <div class="write-feeds__main-feed-name">Ваш отзыв</div>
+                    <form class="main-feed-form" action="">
+                        <input id="main-feed-form-name" class="main-feed-form-input" type="text" placeholder="Ваше имя">
+                        <input id="main-feed-form-place" class="main-feed-form-input" type="text" placeholder="Укажите место">
+                        <textarea id="main-feed-form-textarea" class="main-feed-form-textarea" placeholder="Поделитесь впечатлениями"></textarea>
+                        <div id="main-feed-form-submit" class="main-feed-form-submit">Добавить</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="ya-map" class="wrapper-ya-map__ya-map">
+
+        </div>
+    </div>
+    <script src="src/index.js"></script>
+</body>
+
+</html>
