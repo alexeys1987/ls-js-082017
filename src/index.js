@@ -16,12 +16,12 @@ let cX,
     cY,
     coords,
     myPlacemark,
-    customItemContentLayout;
+    customItemContentLayout,
+    currentAddress;
 
 let geoObject = {};
 
 let sizeYaMap = {};
-
 sizeYaMap.width = yaMap.getBoundingClientRect().width;
 sizeYaMap.height = yaMap.getBoundingClientRect().height;
 
@@ -47,6 +47,7 @@ function init() {
 
             build: function() {
                 customItemContentLayout.superclass.build.call(this);
+                currentAddress = document.getElementsByClassName('show-feeds__feeds-text-address')[0].textContent;
                 document.getElementsByClassName('show-feeds__feeds-text-address')[0]
                     .addEventListener('click', this.onAddressClick);
             },
@@ -59,9 +60,12 @@ function init() {
 
             onAddressClick: function() {
                 let dataPlacemark = myMap.balloon._balloon._data.cluster.properties._data.geoObjects;
-                showWriteFeed(cX, cY, dataPlacemark[0].properties._data.address);
+                showWriteFeed(cX, cY, currentAddress);
                 for (let i = 0; i < dataPlacemark.length; i++) {
-                    createFeedInWriteFeeds(dataPlacemark[i].properties._data.name, dataPlacemark[i].properties._data.place, dataPlacemark[i].properties._data.feed, dataPlacemark[i].properties._data.date);
+                    if (currentAddress == dataPlacemark[i].properties._data.address) {
+                        coords = dataPlacemark[i].properties._data.coords;
+                        createFeedInWriteFeeds(dataPlacemark[i].properties._data.name, dataPlacemark[i].properties._data.place, dataPlacemark[i].properties._data.feed, dataPlacemark[i].properties._data.date);
+                    }
                 }
                 myMap.balloon.close();
             }
@@ -75,7 +79,8 @@ function init() {
         clusterBalloonPanelMaxMapArea: 0,
         clusterBalloonContentLayoutWidth: 200,
         clusterBalloonContentLayoutHeight: 200,
-        clusterBalloonPagerSize: 10
+        clusterBalloonPagerSize: 10,
+        clusterVisible: true
     });
 
     clusterer.options.set({
@@ -89,7 +94,6 @@ function init() {
     });
 
     clusterer.events.add('click', function(e) {
-        coords = e.get('coords');
         cX = e.get('domEvent').get('pageX');
         cY = e.get('domEvent').get('pageY');
     });
@@ -117,7 +121,8 @@ function init() {
             name: writeFeedsNameInput.value,
             place: writeFeedsPlaceInput.value,
             feed: writeFeedsFeedText.value,
-            date: createDate()
+            date: createDate(),
+            coords: coords
         });
         clusterer.add(myPlacemark);
         myPlacemark.events.add('click', function(e) {
@@ -159,7 +164,8 @@ function init() {
     }
 
     function createDate() {
-        let result = new Date;
+        let result = new Date,
+            currentDay;
 
         return result.getFullYear() + '.' +
             ((result.getUTCMonth() < 10) ? '0' + result.getUTCMonth() : result.getUTCMonth()) + '.' +
