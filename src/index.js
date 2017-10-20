@@ -151,7 +151,47 @@ function deleteTextNodesRecursive(where) {
  *   texts: 3
  * }
  */
-function collectDOMStat(root) {}
+function collectDOMStat(root) {
+    let result = {
+        tags: {},
+        classes: {},
+        texts: 0
+    };
+
+    function compareElement(obj, variable) {
+        for (let v in obj) {
+            if (variable == v) {
+                obj[v]++;
+
+                return 1;
+            }
+        }
+        obj[variable] = 1;
+
+        return 2;
+    }
+
+    function findAllElements(elem) {
+        for (let i = 0; i < elem.length; i++) {
+            if (elem[i].nodeType == 1) {
+                if (elem[i].childNodes != undefined) {
+                    findAllElements(elem[i].childNodes);
+                }
+                compareElement(result.tags, elem[i].tagName);
+                for (let j = 0; j < elem[i].classList.length; j++) {
+                    compareElement(result.classes, elem[i].classList[j]);
+                }
+            }
+            if (elem[i].nodeType == 3) {
+                result.texts++;
+            }
+        }
+    }
+
+    findAllElements(root.childNodes);
+
+    return result;
+}
 
 /**
  * *** Со звездочкой ***
@@ -184,7 +224,51 @@ function collectDOMStat(root) {}
  *   nodes: [div]
  * }
  */
-function observeChildNodes(where, fn) {}
+function observeChildNodes(where, fn) {
+    let findAllChildrensArray = [],
+        result = {
+            type: '',
+            nodes: []
+        };
+
+    function findAllChildrens(elem) {
+        for (let i = 0; i < elem.length; i++) {
+            if (elem[i].children != undefined) {
+                findAllChildrens(elem[i].children);
+            }
+            findAllChildrensArray.push(document.createElement(elem[i].localName));
+        }
+
+        return findAllChildrensArray;
+    }
+
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            findAllChildrensArray = [];
+            if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach(function(currentValue, currentIndex, listObj) {
+                    result.type = 'insert';
+                    result.nodes = findAllChildrens(listObj);
+
+                    return fn(result);
+                });
+            }
+            if (mutation.removedNodes.length) {
+                mutation.removedNodes.forEach(function(currentValue, currentIndex, listObj) {
+                    result.type = 'remove';
+                    result.nodes = findAllChildrens(listObj);
+
+                    return fn(result);
+                });
+            }
+        });
+    });
+    let config = { attributes: true, childList: true, characterData: true };
+
+    observer.observe(where, config);
+
+    return true;
+}
 
 export {
     createDivWithText,
