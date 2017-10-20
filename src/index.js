@@ -225,38 +225,38 @@ function collectDOMStat(root) {
  * }
  */
 function observeChildNodes(where, fn) {
-    let findAllChildrensArray = [],
-        result = {
-            type: '',
-            nodes: []
-        };
+    // let findAllChildrensArray = [];
+    let result = {
+        type: '',
+        nodes: []
+    };
 
-    function findAllChildrens(elem) {
-        for (let i = 0; i < elem.length; i++) {
-            if (elem[i].children != undefined) {
-                findAllChildrens(elem[i].children);
-            }
-            findAllChildrensArray.push(document.createElement(elem[i].localName));
-        }
+    // function findAllChildrens(elem) {
+    //     for (let i = 0; i < elem.length; i++) {
+    //         if (elem[i].children != undefined) {
+    //             findAllChildrens(elem[i].children);
+    //         }
+    //         findAllChildrensArray.push(document.createElement(elem[i].localName));
+    //     }
 
-        return findAllChildrensArray;
-    }
+    //     return findAllChildrensArray;
+    // }
 
     var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             findAllChildrensArray = [];
             if (mutation.addedNodes.length) {
-                mutation.addedNodes.forEach(function(currentValue, currentIndex, listObj) {
+                mutation.addedNodes.forEach(function() {
                     result.type = 'insert';
-                    result.nodes = findAllChildrens(listObj);
+                    result.nodes = [...mutation.addedNodes];
 
                     return fn(result);
                 });
             }
             if (mutation.removedNodes.length) {
-                mutation.removedNodes.forEach(function(currentValue, currentIndex, listObj) {
+                mutation.removedNodes.forEach(function() {
                     result.type = 'remove';
-                    result.nodes = findAllChildrens(listObj);
+                    result.nodes = [...mutation.removedNodes];
 
                     return fn(result);
                 });
