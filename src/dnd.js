@@ -13,7 +13,8 @@
  * @example
  * homeworkContainer.appendChild(...);
  */
-let homeworkContainer = document.querySelector('#homework-container');
+let homeworkContainer = document.querySelector('#homework-container'),
+    addDivButton = homeworkContainer.querySelector('#addDiv');
 
 /**
  * Функция должна создавать и возвращать новый div с классом draggable-div и случайными размерами/цветом/позицией
@@ -23,6 +24,23 @@ let homeworkContainer = document.querySelector('#homework-container');
  * @return {Element}
  */
 function createDiv() {
+    let newElement = document.createElement('div'),
+        newElementPosLeft = 0,
+        newElementPosTop = 0;
+
+    newElement.classList.add('draggable-div');
+    newElementPosLeft = randomInteger(1, window.innerWidth);
+    newElement.style.left = newElementPosLeft + 'px';
+    newElementPosTop = randomInteger(1, window.innerHeight);
+    newElement.style.top = newElementPosTop + 'px';
+    newElement.style.width = randomInteger(1, window.innerWidth - newElementPosLeft) + 'px';
+    newElement.style.height = randomInteger(1, window.innerHeight - newElementPosTop) + 'px';
+    newElement.style.backgroundColor = 'rgb(' +
+        randomInteger(0, 255) + ', ' +
+        randomInteger(0, 255) + ', ' +
+        randomInteger(0, 255) + ')';
+
+    return newElement;
 }
 
 /**
@@ -30,21 +48,43 @@ function createDiv() {
  *
  * @param {Element} target
  */
-function addListeners(target) {
+
+function randomInteger(min, max) {
+    let rand = min - 0.5 + Math.random() * (max - min + 1);
+
+    rand = Math.round(rand);
+
+    return rand;
 }
 
-let addDivButton = homeworkContainer.querySelector('#addDiv');
+function addListeners(target) {
+    let currentX,
+        currentY,
+        zIndex;
+
+    function moveElementHandler(e) {
+        target.style.left = (e.clientX - currentX) + 'px';
+        target.style.top = (e.clientY - currentY) + 'px';
+    }
+
+    target.addEventListener('mousedown', function(e) {
+        zIndex = getComputedStyle(target).zIndex;
+        target.style.zIndex = '1000';
+        currentX = e.clientX - parseInt(getComputedStyle(target).left);
+        currentY = e.clientY - parseInt(getComputedStyle(target).top);
+        document.addEventListener('mousemove', moveElementHandler);
+    });
+    target.addEventListener('mouseup', function() {
+        target.style.zIndex = zIndex;
+        document.removeEventListener('mousemove', moveElementHandler);
+    });
+}
 
 addDivButton.addEventListener('click', function() {
-    // создать новый div
     let div = createDiv();
 
-    // добавить на страницу
     homeworkContainer.appendChild(div);
-    // назначить обработчики событий мыши для реализации d&d
     addListeners(div);
-    // можно не назначать обработчики событий каждому div в отдельности, а использовать делегирование
-    // или использовать HTML5 D&D - https://www.html5rocks.com/ru/tutorials/dnd/basics/
 });
 
 export {

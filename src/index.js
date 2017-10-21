@@ -73,7 +73,16 @@ function delegate(target, fn) {
  * @param {Element} target - элемент, на который нужно добавить обработчик
  * @param {function} fn - обработчик
  */
-function once(target, fn) {}
+function once(target, fn) {
+    function onceHandler() {
+        target.removeEventListener('click', onceHandler);
+
+        return fn();
+    }
+    target.addEventListener('click', onceHandler);
+
+    return true;
+}
 
 export {
     addListener,
